@@ -1,0 +1,4 @@
+Resultado: Perdiste
+Mano del jugador: ['5', 'K']
+Mano de la casa: ['Q', '10']
+
