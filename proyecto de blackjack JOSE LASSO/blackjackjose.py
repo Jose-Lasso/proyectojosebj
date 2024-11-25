@@ -1,23 +1,33 @@
 import random
 
+
 VALORES_CARTAS = {
     '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
     'J': 10, 'Q': 10, 'K': 10, 'A': 11
 }
+
+class Carta:
+    def __init__(self, valor, palo):
+        self.valor = valor
+        self.palo = palo
+        self.valor_numerico = VALORES_CARTAS[valor]
+
+    def __repr__(self):
+        return f"{self.valor} de {self.palo}"
 
 class Blackjack:
     def __init__(self):
         self.resetear_partida()
 
     def resetear_partida(self):
-        
         self.baraja = self.crear_baraja()
         self.mano_jugador = []
         self.mano_casa = []
         self.resultado = None
 
     def crear_baraja(self):
-        baraja = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] * 4
+        palos = ['Corazones', 'Diamantes', 'Tréboles', 'Picas']
+        baraja = [Carta(valor, palo) for valor in VALORES_CARTAS.keys() for palo in palos]
         random.shuffle(baraja)
         return baraja
 
@@ -25,8 +35,8 @@ class Blackjack:
         puntaje = 0
         ases = 0
         for carta in mano:
-            puntaje += VALORES_CARTAS[carta]
-            if carta == 'A':
+            puntaje += carta.valor_numerico
+            if carta.valor == 'A':
                 ases += 1
         while puntaje > 21 and ases:
             puntaje -= 10
@@ -34,31 +44,30 @@ class Blackjack:
         return puntaje
 
     def registrar_resultado(self):
-        
         with open("registro_juegos.txt", "a") as archivo:
             archivo.write(f"Resultado: {self.resultado}\n")
             archivo.write(f"Mano del jugador: {self.mano_jugador}\n")
             archivo.write(f"Mano de la casa: {self.mano_casa}\n\n")
 
     def ordenar_cartas(self, mano):
-        mano_ordenada = sorted(mano, key=lambda carta: VALORES_CARTAS[carta])
+        mano_ordenada = sorted(mano, key=lambda carta: carta.valor_numerico)
         return mano_ordenada
 
     def agregar_carta(self, mano, carta):
         mano.append(carta)
 
     def eliminar_carta(self, mano, carta):
-       
-        if carta in mano:
-            mano.remove(carta)
-            print(f"Carta {carta} eliminada correctamente.")
-            print(f"Mano actualizada: {mano}")
-        else:
-            print(f"La carta {carta} no está en la mano. No se eliminó nada.")
+        for c in mano:
+            if c.valor == carta.valor and c.palo == carta.palo:
+                mano.remove(c)
+                print(f"Carta {c} eliminada correctamente.")
+                print(f"Mano actualizada: {mano}")
+                return mano
+        print(f"La carta {carta} no está en la mano. No se eliminó nada.")
         return mano
 
     def jugar(self):
-        self.resetear_partida()  
+        self.resetear_partida()
         self.mano_jugador.append(self.baraja.pop())
         self.mano_jugador.append(self.baraja.pop())
         self.mano_casa.append(self.baraja.pop())
@@ -123,7 +132,7 @@ def jugar_otra():
         accion = input("¿Quieres jugar otra partida? (si/no): ").lower()
         if accion in ['si', 'sí']:
             return True
-        elif accion in ['no', 'n']:
+        elif accion in ['no', 'no']:
             print("Gracias por jugar!")
             return False
         else:
@@ -133,11 +142,13 @@ def eliminar_cartas(juego):
     while True:
         accion = input("¿Quieres eliminar una carta de tu mano (jugador o casa)? Escribe 'jugador' o 'casa' para seleccionar la mano o 'salir' para terminar: ").lower()
         if accion == 'jugador':
-            carta_a_eliminar = input("Escribe el nombre de la carta que deseas eliminar de tu mano: ").upper()
-            juego.eliminar_carta(juego.mano_jugador, carta_a_eliminar)
+            carta_a_eliminar = input("Escribe el valor y palo de la carta que deseas eliminar de tu mano (ejemplo: 'A de Corazones'): ").split(' de ')
+            carta = Carta(carta_a_eliminar[0], carta_a_eliminar[1])
+            juego.eliminar_carta(juego.mano_jugador, carta)
         elif accion == 'casa':
-            carta_a_eliminar = input("Escribe el nombre de la carta que deseas eliminar de la mano de la casa: ").upper()
-            juego.eliminar_carta(juego.mano_casa, carta_a_eliminar)
+            carta_a_eliminar = input("Escribe el valor y palo de la carta que deseas eliminar de la mano de la casa (ejemplo: 'A de Corazones'): ").split(' de ')
+            carta = Carta(carta_a_eliminar[0], carta_a_eliminar[1])
+            juego.eliminar_carta(juego.mano_casa, carta)
         elif accion == 'salir':
             break
         else:
